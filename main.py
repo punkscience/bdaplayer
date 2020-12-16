@@ -3,6 +3,23 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin, unquote
 
+downloadQueue = []
+
+def queueDownload( obj ):
+    downloadQueue.append( obj )
+
+def startDownloading():
+    print( "Downloading " + str( len( downloadQueue ) ) + " files...")
+    count = 1
+    for obj in downloadQueue:
+        print("Downloading " + str( count ) + " of " + str( len( downloadQueue ) ) + ": " + obj['fullName'] + '...')
+        mp3 = requests.get( obj['url'], headers={"User-Agent": "XY"})
+
+        with open( obj['fullName'], "wb") as f:
+            f.write( mp3.content )
+            downloadQueue.pop()
+
+
 def parseFolder( sub, nightFolder ):
     url = urljoin( sub, nightFolder )
     print( "Scanning " + url + '...') 
@@ -18,7 +35,7 @@ def parseFolder( sub, nightFolder ):
         if contents.find( 'Parent') != -1:
             continue
 
-        if localAnchor != "/" and localAnchor[len(localAnchor)-1] == '/':
+        if localAnchor != "/" and localAnchor[len(localAnchor)-1] == '/' and localAnchor.find('http://') == -1 and localAnchor.find('https://') == -1:
             parseFolder( url, localAnchor )
         elif localAnchor.find( '.mp3' ) != -1:
             mp3url = urljoin( url, localAnchor )
@@ -31,18 +48,24 @@ def parseFolder( sub, nightFolder ):
             if not os.path.exists( 'output' ):
                 os.mkdir( 'output')
 
+            fullName = './output/' + filename
+
             # Check to see if we already have the file and if not, download it. 
-            if not os.path.exists( './output/' + filename ):
-                print("Downloading " + filename + '...')
-                mp3 = requests.get( mp3url, headers={"User-Agent": "XY"})
-
-                with open( './output/' + filename, "wb") as f:
-                    f.write( mp3.content )
-
+            if not os.path.exists( fullName ):
+                obj = {
+                    "url": mp3url,
+                    "fullName": fullName
+                }
+                
+                queueDownload( obj )
+            else:
+                print( "Skipping " + fullName + '.')
 
 root = 'http://archives.bassdrivearchive.com/'
 
 parseFolder( root, '')
+startDownloading()
+
 
 
 
