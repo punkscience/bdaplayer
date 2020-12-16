@@ -26,14 +26,18 @@ def parseFolder( sub, nightFolder ):
             urlObj = urlparse( mp3url )
             filename = os.path.basename(urlObj.path)
             filename = unquote( filename )
-            print("Downloading " + filename + '...')
-            mp3 = requests.get( mp3url, headers={"User-Agent": "XY"})
 
+            # Make the folder if we need to
             if not os.path.exists( 'output' ):
                 os.mkdir( 'output')
 
-            with open( './output/' + filename, "wb") as f:
-                f.write( mp3.content )
+            # Check to see if we already have the file and if not, download it. 
+            if not os.path.exists( './output/' + filename ):
+                print("Downloading " + filename + '...')
+                mp3 = requests.get( mp3url, headers={"User-Agent": "XY"})
+
+                with open( './output/' + filename, "wb") as f:
+                    f.write( mp3.content )
 
 
 root = 'http://archives.bassdrivearchive.com/'
