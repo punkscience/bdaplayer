@@ -17,7 +17,8 @@ def startDownloading():
 
         with open( obj['fullName'], "wb") as f:
             f.write( mp3.content )
-            downloadQueue.pop()
+            count = count + 1
+    
 
 
 def parseFolder( sub, nightFolder ):
