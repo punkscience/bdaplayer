@@ -5,6 +5,7 @@ import json
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin, unquote
 from PySide2.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QVBoxLayout, QListWidget
+import downloader
 
 downloadQueue = []
 root = 'http://archives.bassdrivearchive.com/'
