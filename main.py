@@ -1,5 +1,6 @@
 import os
 import requests
+import sys
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin, unquote
 
@@ -13,12 +14,27 @@ def startDownloading():
     count = 1
     for obj in downloadQueue:
         print("Downloading " + str( count ) + " of " + str( len( downloadQueue ) ) + ": " + obj['fullName'] + '...')
-        mp3 = requests.get( obj['url'], headers={"User-Agent": "XY"})
 
-        with open( obj['fullName'], "wb") as f:
-            f.write( mp3.content )
-            count = count + 1
-    
+        download( obj['url'], obj['fullName'] )
+        count = count + 1
+
+def download( url, filename ):
+    with open(filename, 'wb') as f:
+        response = requests.get(url, headers={"User-Agent": "XY"}, stream=True )
+        total = response.headers.get('content-length')
+
+        if total is None:
+            f.write(response.content)
+        else:
+            downloaded = 0
+            total = int(total)
+            for data in response.iter_content(chunk_size=max(int(total/1000), 1024*1024)):
+                downloaded += len(data)
+                f.write(data)
+                done = int(50*downloaded/total)
+                sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50-done)))
+                sys.stdout.flush()
+    sys.stdout.write('\n')
 
 
 def parseFolder( sub, nightFolder ):
