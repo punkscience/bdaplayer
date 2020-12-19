@@ -4,8 +4,8 @@ import sys
 import json
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin, unquote
-from PySide2.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QVBoxLayout, QListWidget
-import downloader
+from PySide2.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QVBoxLayout, QListWidget, QProgressBar
+from downloader import DownloadThread
 
 downloadQueue = []
 root = 'http://archives.bassdrivearchive.com/'
@@ -33,6 +33,7 @@ class Form(QDialog):
         self.btnScan.clicked.connect( self.onPbScan )
         self.btnStartDownload = QPushButton( "Start Download")
         self.btnStartDownload.clicked.connect( self.onPnDownload )
+        self.xProgressBar = QProgressBar( self )
 
         self.listFiles = QListWidget()
 
@@ -41,7 +42,10 @@ class Form(QDialog):
         layout = QVBoxLayout()
         layout.addWidget(self.btnScan)
         layout.addWidget(self.btnStartDownload)
+        layout.addWidget(self.xProgressBar)
         layout.addWidget(self.listFiles )
+
+        self.xProgressBar.setRange(1, 100)
 
         # Set dialog layout
         self.setLayout(layout)
@@ -51,7 +55,8 @@ class Form(QDialog):
             obj = json.load( f )
             for file in obj['files']:
                 downloadQueue.append( file )
-                self.listFiles.addItem( file['fullName'] )
+                if file['downloaded'] != True:
+                    self.listFiles.addItem( file['fullName'] )
 
 
     def onPbScan( self ):
@@ -64,7 +69,6 @@ class Form(QDialog):
     def onPnDownload( self ):
         self.btnStartDownload.setEnabled( False )
         self.startDownloading()
-        self.btnStartDownload.setEnabled( True )
 
     def writeDb( self ):
         with open( "filelist.json", "w") as f:
@@ -80,34 +84,32 @@ class Form(QDialog):
 
         self.writeDb()
 
-    def download( self, url, filename ):
-        with open(filename, 'wb') as f:
-            response = requests.get(url, headers={"User-Agent": "XY"}, stream=True )
-            total = response.headers.get('content-length')
+    def onDownloadUpdate( self, data ):
+        self.xProgressBar.setValue( data )
 
-            if total is None:
-                f.write(response.content)
-            else:
-                downloaded = 0
-                total = int(total)
-                for data in response.iter_content(chunk_size=max(int(total/1000), 1024*1024)):
-                    downloaded += len(data)
-                    f.write(data)
-                    #done = int(50*downloaded/total)
-                self.setDownloaded( filename, True )
+    def onDownloadComplete( self, obj ):
+        #print( "Download complete on {}.".format(obj['fullName']))
+        self.setDownloaded( obj['fullName'], True)
+        self.startDownloading() # Kick it off again
 
+    def download( self, obj ):
+        self.thread = DownloadThread( obj )
+        self.thread.download_update.connect( self.onDownloadUpdate )
+        self.thread.download_complete.connect( self.onDownloadComplete )
+        self.thread.start()
 
     def startDownloading( self ):
-        print( "Downloading " + str( len( downloadQueue ) ) + " files...")
-        count = 1
+        #print( "Downloading " + str( len( downloadQueue ) ) + " files...")
+        next = {}
         for obj in downloadQueue:
             if obj['downloaded'] == True:
                 continue
 
-            print("Downloading " + str( count ) + " of " + str( len( downloadQueue ) ) + ": " + obj['fullName'] + '...')
+            next = obj
+            break
 
-            self.download( obj['url'], obj['fullName'] )
-            count = count + 1
+        self.download( next )
+    
 
     def parseFolder( self, sub, nightFolder ):
         url = urljoin( sub, nightFolder )
