@@ -68,6 +68,7 @@ class Form(QDialog):
 
     def onPnDownload( self ):
         self.btnStartDownload.setEnabled( False )
+        self.btnScan.setEnabled( False )
         self.startDownloading()
 
     def writeDb( self ):
@@ -91,6 +92,7 @@ class Form(QDialog):
         #print( "Download complete on {}.".format(obj['fullName']))
         self.setDownloaded( obj['fullName'], True)
         self.startDownloading() # Kick it off again
+        self.listFiles.takeItem(0)
 
     def download( self, obj ):
         self.thread = DownloadThread( obj )
