@@ -4,23 +4,11 @@ import sys
 import json
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin, unquote
-from PySide2.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QVBoxLayout, QListWidget, QProgressBar
+from PySide2.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QListWidget, QProgressBar, QFileDialog
 from downloader import DownloadThread
 
-downloadQueue = []
+
 root = 'http://archives.bassdrivearchive.com/'
-
-
-def queueDownload( obj ):
-    for obj in downloadQueue:
-        if obj['fullName'] == obj['fullName']:
-            return
-
-    downloadQueue.append( obj )
-
-
-
-
 
 
 class Form(QDialog):
@@ -34,12 +22,20 @@ class Form(QDialog):
         self.btnStartDownload = QPushButton( "Start Download")
         self.btnStartDownload.clicked.connect( self.onPnDownload )
         self.xProgressBar = QProgressBar( self )
+        self.eOutputFolder = QLineEdit( self )
+        self.pbBrowse = QPushButton( '...' )
+        self.pbBrowse.clicked.connect( self.onBrowseClick )
 
         self.listFiles = QListWidget()
 
-
         # Create layout and add widgets
         layout = QVBoxLayout()
+
+        layoutEdit = QHBoxLayout()
+        layoutEdit.addWidget(self.eOutputFolder)
+        layoutEdit.addWidget(self.pbBrowse)
+
+        layout.addLayout(layoutEdit)
         layout.addWidget(self.btnScan)
         layout.addWidget(self.btnStartDownload)
         layout.addWidget(self.xProgressBar)
@@ -52,11 +48,25 @@ class Form(QDialog):
 
         # Read in what we've already scanned
         with open("filelist.json", "r") as f:
-            obj = json.load( f )
-            for file in obj['files']:
-                downloadQueue.append( file )
+            self.db = json.load( f )
+            
+            self.eOutputFolder.setText(self.db['output'])
+            for file in self.db['queue']:
                 if file['downloaded'] != True:
                     self.listFiles.addItem( file['fullName'] )
+
+    def queueDownload( self, obj ):
+        for obj in self.db['queue']:
+            if obj['fullName'] == obj['fullName']:
+                return
+
+        self.db['queue'].append( obj )
+
+
+    def onBrowseClick( self ):
+        self.db['output'] = QFileDialog.getExistingDirectory()
+        self.eOutputFolder.setText( self.db['output'])
+        self.writeDb()
 
 
     def onPbScan( self ):
@@ -73,13 +83,10 @@ class Form(QDialog):
 
     def writeDb( self ):
         with open( "filelist.json", "w") as f:
-            obj = {
-                "files": downloadQueue
-            }
-            json.dump( obj, f )
+            json.dump( self.db, f )
 
     def setDownloaded( self, fullName, state ):
-        for obj in downloadQueue:
+        for obj in self.db['queue']:
             if obj['fullName'] == fullName:
                 obj['downloaded'] = state
 
@@ -95,22 +102,21 @@ class Form(QDialog):
         self.listFiles.takeItem(0)
 
     def download( self, obj ):
-        self.thread = DownloadThread( obj )
+        filename = os.path.join( self.db['output'], obj['fullName'])
+        print( "Downloasing {}...".format(filename) )
+        self.thread = DownloadThread( self.eOutputFolder.text(), obj )
         self.thread.download_update.connect( self.onDownloadUpdate )
         self.thread.download_complete.connect( self.onDownloadComplete )
         self.thread.start()
 
     def startDownloading( self ):
-        #print( "Downloading " + str( len( downloadQueue ) ) + " files...")
-        next = {}
-        for obj in downloadQueue:
-            if obj['downloaded'] == True:
+
+        for file in self.db['queue']:
+            if file['downloaded'] == True:
                 continue
 
-            next = obj
+            self.download( file )
             break
-
-        self.download( next )
     
 
     def parseFolder( self, sub, nightFolder ):
@@ -151,7 +157,7 @@ class Form(QDialog):
                         "downloaded": False
                     }
                     
-                    queueDownload( obj )
+                    self.queueDownload( obj )
                     self.listFiles.addItem( obj['fullName'])
                     
 

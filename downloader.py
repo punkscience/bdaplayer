@@ -2,19 +2,21 @@
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 import requests
+import os
 
 class DownloadThread(QThread):
 
     download_complete = Signal(object)
     download_update = Signal(object)
 
-    def __init__(self, obj):
+    def __init__(self, output, obj):
         QThread.__init__(self)
         self.fileObj = obj
+        self.outputFolder = output
 
     def run(self):
-        # print( "Thread running with {}...".format( self.fileObj['fullName']) )
-        with open(self.fileObj['fullName'], 'wb') as f:
+        filename = os.path.join( self.outputFolder, self.fileObj['fullName'] )
+        with open(filename, 'wb') as f:
             response = requests.get(self.fileObj['url'], headers={"User-Agent": "XY"}, stream=True )
             total = response.headers.get('content-length')
 
