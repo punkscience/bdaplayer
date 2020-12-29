@@ -1,32 +1,41 @@
 import os
-import requests
 import sys
 import json
-from bs4 import BeautifulSoup
-from urllib.parse import urlparse, urljoin, unquote
+from datetime import datetime, timedelta
+import vlc
+import random
+
 from PySide2.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QListWidget, QProgressBar, QFileDialog
-from downloader import DownloadThread
+from workers.downloader import DownloadThread
+from workers.webscraper import ScraperThread
 
 
-root = 'http://archives.bassdrivearchive.com/'
+ROOTURL = 'http://archives.bassdrivearchive.com/'
+DBFILE = 'filedata.json'
 
 
 class Form(QDialog):
 
     def __init__(self, parent=None):
+        self.player = None
         super(Form, self).__init__(parent)
-        self.setWindowTitle("Bassdrive Archive Extractor")
+        self.setWindowTitle("Bassdrive Archive Player")
 
-        self.btnScan = QPushButton("Scan Archive")
-        self.btnScan.clicked.connect( self.onPbScan )
-        self.btnStartDownload = QPushButton( "Start Download")
-        self.btnStartDownload.clicked.connect( self.onPnDownload )
+        self.pbPlay = QPushButton( "Play")
+        self.pbStop = QPushButton( "Stop")
+        self.pbRandom = QPushButton( "Random" )
+        self.pbPlay.clicked.connect( self.onPbDownload )
+        self.pbRandom.clicked.connect( self.onPbRandom )
+        self.pbStop.clicked.connect( self.onPbStop )
+
+        self.pbPlay.setEnabled( False )
         self.xProgressBar = QProgressBar( self )
         self.eOutputFolder = QLineEdit( self )
         self.pbBrowse = QPushButton( '...' )
         self.pbBrowse.clicked.connect( self.onBrowseClick )
 
         self.listFiles = QListWidget()
+        self.listFiles.itemClicked.connect( self.onItemSelected )
 
         # Create layout and add widgets
         layout = QVBoxLayout()
@@ -36,10 +45,11 @@ class Form(QDialog):
         layoutEdit.addWidget(self.pbBrowse)
 
         layout.addLayout(layoutEdit)
-        layout.addWidget(self.btnScan)
-        layout.addWidget(self.btnStartDownload)
         layout.addWidget(self.xProgressBar)
         layout.addWidget(self.listFiles )
+        layout.addWidget(self.pbPlay)
+        layout.addWidget(self.pbStop )
+        layout.addWidget(self.pbRandom )
 
         self.xProgressBar.setRange(1, 100)
 
@@ -47,20 +57,55 @@ class Form(QDialog):
         self.setLayout(layout)
 
         # Read in what we've already scanned
-        with open("filelist.json", "r") as f:
-            self.db = json.load( f )
-            
-            self.eOutputFolder.setText(self.db['output'])
-            for file in self.db['queue']:
-                if file['downloaded'] != True:
-                    self.listFiles.addItem( file['fullName'] )
+        if os.path.isfile( DBFILE ):
+            with open(DBFILE, "r") as f:
+                self.db = json.load( f )
+                
+                self.eOutputFolder.setText(self.db['output'])
+                for file in self.db['files']:
+                    self.listFiles.addItem( file['filename'] )
+        else:
+            self.db = {
+                "output": "output",
+                "last_scan": "2020-12-28T19:19:10.702353",
+                "files": []
+            }
+    
+        if datetime.now() >= datetime.fromisoformat(self.db['last_scan']) + timedelta( hours=12 ):
+            self.startWebScraping( DBFILE, ROOTURL )
 
-    def queueDownload( self, obj ):
-        for obj in self.db['queue']:
-            if obj['fullName'] == obj['fullName']:
-                return
+    def onPbStop( self ):
+        self.player.stop()
 
-        self.db['queue'].append( obj )
+    def onPbRandom( self ):
+        randomNo = random.randint( 0, len( self.db['files'] )-1 )
+        self.listFiles.setCurrentRow(randomNo )
+        obj = self.db['files'][randomNo]
+        self.playFile( obj )
+
+    def onItemSelected( self, listItem ):
+        self.pbPlay.setEnabled( True )
+        print( 'Selected: {}({})'.format( listItem.text(), self.listFiles.currentRow() ))
+
+    def startWebScraping( self, dbFile, rootUrl ):
+        self.pbBrowse.setEnabled( False )
+        print( "Starting web scraping from {} to {}...".format( rootUrl, dbFile ))
+        self.scrapethread = ScraperThread( dbFile, rootUrl )
+        self.scrapethread.scraper_update.connect( self.onScraperUpdate )
+        self.scrapethread.scraper_complete.connect( self.onScraperComplete )
+        self.scrapethread.start()
+        
+    def onScraperUpdate( self, obj ):
+        pass
+        
+    def onScraperComplete( self, newdb ):
+        for obj in newdb:
+            if obj not in self.db:
+                self.db.append( obj )
+                self.listFiles.addItem( obj['filename'])
+                print( "Adding new mix: {}".format(obj['filename']))
+
+        self.pbBrowse.setEnabled( True )
 
 
     def onBrowseClick( self ):
@@ -69,25 +114,26 @@ class Form(QDialog):
         self.writeDb()
 
 
-    def onPbScan( self ):
-        self.btnScan.setEnabled( False )
-        self.listFiles.clear()
-        self.parseFolder( root, '')
-        self.writeDb()
-        self.btnScan.setEnabled( True )
+    def onPbDownload( self ):
+        self.pbPlay.setEnabled( False )
+        selectedItem = self.listFiles.currentRow()
+        fileObj = self.db['files'][selectedItem]
+        self.playFile( fileObj )
 
-    def onPnDownload( self ):
-        self.btnStartDownload.setEnabled( False )
-        self.btnScan.setEnabled( False )
-        self.startDownloading()
+    def playFile( self, obj ):
+        if obj['downloaded'] == True:
+            self.playSound( obj )
+        else:
+            self.download( obj )
 
     def writeDb( self ):
-        with open( "filelist.json", "w") as f:
-            json.dump( self.db, f )
+        self.db['output'] = self.eOutputFolder.text()
+        with open( DBFILE, "w") as f:
+            json.dump( self.db, f, indent=4)
 
     def setDownloaded( self, fullName, state ):
-        for obj in self.db['queue']:
-            if obj['fullName'] == fullName:
+        for obj in self.db['files']:
+            if obj['filename'] == fullName:
                 obj['downloaded'] = state
 
         self.writeDb()
@@ -97,69 +143,31 @@ class Form(QDialog):
 
     def onDownloadComplete( self, obj ):
         #print( "Download complete on {}.".format(obj['fullName']))
-        self.setDownloaded( obj['fullName'], True)
-        self.startDownloading() # Kick it off again
-        self.listFiles.takeItem(0)
+        self.setDownloaded( obj['filename'], True)
+        self.playSound( obj )
+        self.pbPlay.setEnabled( True )
+        
+
+    def playSound( self, obj ):
+        filename = os.path.join( 'cache', obj['filename'] )
+
+        if self.player != None:
+                self.player.stop()
+                self.player = None
+
+        self.player = vlc.MediaPlayer(filename)
+        self.player.play()
 
     def download( self, obj ):
-        filename = os.path.join( self.db['output'], obj['fullName'])
+        if not os.path.isdir( 'cache'):
+            os.mkdir( 'cache' )
+
+        filename = os.path.join( 'cache', obj['filename'])
         print( "Downloasing {}...".format(filename) )
-        self.thread = DownloadThread( self.eOutputFolder.text(), obj )
-        self.thread.download_update.connect( self.onDownloadUpdate )
-        self.thread.download_complete.connect( self.onDownloadComplete )
-        self.thread.start()
-
-    def startDownloading( self ):
-
-        for file in self.db['queue']:
-            if file['downloaded'] == True:
-                continue
-
-            self.download( file )
-            break
-    
-
-    def parseFolder( self, sub, nightFolder ):
-        url = urljoin( sub, nightFolder )
-        #print( "Scanning " + url + '...') 
-        pagecontent = requests.get( url, headers={"User-Agent": "XY"})
-        soup = BeautifulSoup( pagecontent.content, "html.parser")
-
-        anchors = soup.find_all('a')
-
-        for anchor in anchors:
-            
-            localAnchor = anchor['href']
-            contents = anchor.contents[0]
-            if contents.find( 'Parent') != -1:
-                continue
-
-            if localAnchor != "/" and localAnchor[len(localAnchor)-1] == '/' and localAnchor.find('http://') == -1 and localAnchor.find('https://') == -1:
-                self.parseFolder( url, localAnchor )
-            elif localAnchor.find( '.mp3' ) != -1:
-                mp3url = urljoin( url, localAnchor )
-                
-                urlObj = urlparse( mp3url )
-                filename = os.path.basename(urlObj.path)
-                filename = unquote( filename )
-
-                # Make the folder if we need to
-                if not os.path.exists( 'output' ):
-                    os.mkdir( 'output')
-
-                fullName = './output/' + filename
-
-                # Check to see if we already have the file and if not, download it. 
-                if not os.path.exists( fullName ):
-                    obj = {
-                        "url": mp3url,
-                        "fullName": fullName,
-                        "downloaded": False
-                    }
-                    
-                    self.queueDownload( obj )
-                    self.listFiles.addItem( obj['fullName'])
-                    
+        self.downloadthread = DownloadThread( 'cache', obj )
+        self.downloadthread.download_update.connect( self.onDownloadUpdate )
+        self.downloadthread.download_complete.connect( self.onDownloadComplete )
+        self.downloadthread.start()
 
 
 if __name__ == '__main__':

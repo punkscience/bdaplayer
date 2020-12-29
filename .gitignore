@@ -1,2 +1,5 @@
 output/
 filelist.json
+cache/
+__pycache__/
+.vscode/
