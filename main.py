@@ -17,7 +17,7 @@ DBFILE = 'filedata.json'
 class Form(QDialog):
 
     def __init__(self, parent=None):
-        self.player = None
+        self.player = vlc.MediaPlayer()
         super(Form, self).__init__(parent)
         self.setWindowTitle("Bassdrive Archive Player")
 
@@ -80,9 +80,9 @@ class Form(QDialog):
     def onPbStop( self ):
         self.player.stop()
         self.pbPlay.setText( "Play")
+        self.pbPlay.clicked.disconnect( self.onPause )
         self.pbPlay.clicked.connect( self.onPbPlay )
         self.pbPlay.setEnabled( True )
-
 
     def onPbRandom( self ):
         randomNo = random.randint( 0, len( self.db['files'] )-1 )
@@ -91,12 +91,11 @@ class Form(QDialog):
         self.playFile( obj )
 
     def playFile( self, obj ):
-        if self.player != None and self.player.is_playing():
-            self.player.stop()
-
-        self.player = vlc.MediaPlayer( obj['url'])
+        self.player.stop()
+        self.player.set_mrl( obj['url'])
         self.player.play()
         self.pbPlay.setText( "Pause")
+        self.pbPlay.clicked.disconnect( self.onPbPlay )
         self.pbPlay.clicked.connect( self.onPause )
         self.pbPlay.setEnabled( True )
 
@@ -136,12 +135,13 @@ class Form(QDialog):
         self.download( fileObj )
 
     def onPbPlay( self ):
-        obj = db['files'][self.listFiles.currentRow()]
+        obj = self.db['files'][self.listFiles.currentRow()]
         self.playFile( obj )
 
     def onPause( self ):
         self.player.pause()
         self.pbPlay.setText( "Play" )
+        self.pbPlay.clicked.disconnect( self.onPause )
         self.pbPlay.clicked.connect( self.onPbPlay )
 
     def writeDb( self ):
