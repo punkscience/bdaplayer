@@ -24,7 +24,9 @@ class Form(QDialog):
         self.pbPlay = QPushButton( "Play")
         self.pbStop = QPushButton( "Stop")
         self.pbRandom = QPushButton( "Random" )
-        self.pbPlay.clicked.connect( self.onPbDownload )
+        self.pbDownload = QPushButton( "Download" )
+        self.pbPlay.clicked.connect( self.onPbPlay )
+        self.pbDownload.clicked.connect( self.onPbDownload )
         self.pbRandom.clicked.connect( self.onPbRandom )
         self.pbStop.clicked.connect( self.onPbStop )
 
@@ -50,6 +52,7 @@ class Form(QDialog):
         layout.addWidget(self.pbPlay)
         layout.addWidget(self.pbStop )
         layout.addWidget(self.pbRandom )
+        layout.addWidget(self.pbDownload)
 
         self.xProgressBar.setRange(1, 100)
 
@@ -76,12 +79,26 @@ class Form(QDialog):
 
     def onPbStop( self ):
         self.player.stop()
+        self.pbPlay.setText( "Play")
+        self.pbPlay.clicked.connect( self.onPbPlay )
+        self.pbPlay.setEnabled( True )
+
 
     def onPbRandom( self ):
         randomNo = random.randint( 0, len( self.db['files'] )-1 )
         self.listFiles.setCurrentRow(randomNo )
         obj = self.db['files'][randomNo]
         self.playFile( obj )
+
+    def playFile( self, obj ):
+        if self.player != None and self.player.is_playing():
+            self.player.stop()
+
+        self.player = vlc.MediaPlayer( obj['url'])
+        self.player.play()
+        self.pbPlay.setText( "Pause")
+        self.pbPlay.clicked.connect( self.onPause )
+        self.pbPlay.setEnabled( True )
 
     def onItemSelected( self, listItem ):
         self.pbPlay.setEnabled( True )
@@ -107,24 +124,25 @@ class Form(QDialog):
 
         self.pbBrowse.setEnabled( True )
 
-
     def onBrowseClick( self ):
         self.db['output'] = QFileDialog.getExistingDirectory()
         self.eOutputFolder.setText( self.db['output'])
         self.writeDb()
 
-
     def onPbDownload( self ):
-        self.pbPlay.setEnabled( False )
+        self.pbDownload.setEnabled( False )
         selectedItem = self.listFiles.currentRow()
         fileObj = self.db['files'][selectedItem]
-        self.playFile( fileObj )
+        self.download( fileObj )
 
-    def playFile( self, obj ):
-        if obj['downloaded'] == True:
-            self.playSound( obj )
-        else:
-            self.download( obj )
+    def onPbPlay( self ):
+        obj = db['files'][self.listFiles.currentRow()]
+        self.playFile( obj )
+
+    def onPause( self ):
+        self.player.pause()
+        self.pbPlay.setText( "Play" )
+        self.pbPlay.clicked.connect( self.onPbPlay )
 
     def writeDb( self ):
         self.db['output'] = self.eOutputFolder.text()
@@ -144,19 +162,7 @@ class Form(QDialog):
     def onDownloadComplete( self, obj ):
         #print( "Download complete on {}.".format(obj['fullName']))
         self.setDownloaded( obj['filename'], True)
-        self.playSound( obj )
-        self.pbPlay.setEnabled( True )
         
-
-    def playSound( self, obj ):
-        filename = os.path.join( 'cache', obj['filename'] )
-
-        if self.player != None:
-                self.player.stop()
-                self.player = None
-
-        self.player = vlc.MediaPlayer(filename)
-        self.player.play()
 
     def download( self, obj ):
         if not os.path.isdir( 'cache'):
