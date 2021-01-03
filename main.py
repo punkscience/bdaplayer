@@ -70,7 +70,7 @@ class Form(QDialog):
         else:
             self.db = {
                 "output": "output",
-                "last_scan": "2020-12-28T19:19:10.702353",
+                "last_scan": "2020-01-28T19:19:10.702353",
                 "files": []
             }
     

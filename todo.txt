@@ -1,0 +1,2 @@
+Implemented an event on song end: 
+https://stackoverflow.com/questions/3595649/vlc-python-eventmanager-callback-type
