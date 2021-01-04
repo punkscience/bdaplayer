@@ -14,9 +14,8 @@ class ScraperThread(QThread):
     scraper_complete = Signal(object)
     scraper_update = Signal(object)
 
-    def __init__(self, dbFileName, rootUrl ):
+    def __init__(self, rootUrl ):
         QThread.__init__(self)
-        self.dbFileName = dbFileName
         self.rootUrl = rootUrl
 
     def parseFolder( self, sub, nightFolder ):
@@ -53,21 +52,17 @@ class ScraperThread(QThread):
                 self.db['files'].append( obj )
                 self.scraper_update.emit( obj )
 
-                    
-
     def run(self):
-        with open(self.dbFileName, "w") as f:
-            # Create a local database
-            self.db = {
-                "output": "",
-                "last_scan": datetime.now().isoformat(),
-                "files": []
-            }
+        
+        # Create a local database
+        self.db = {
+            "output": "",
+            "last_scan": datetime.now().isoformat(),
+            "files": []
+        }
 
-            # Parse the web
-            self.parseFolder( self.rootUrl, '')
+        # Parse the web
+        self.parseFolder( self.rootUrl, '')
 
-            # Dump out the results 
-            json.dump( self.db, f, indent=4 )
-            self.scraper_complete.emit( self.db )
+        self.scraper_complete.emit( self.db )
         

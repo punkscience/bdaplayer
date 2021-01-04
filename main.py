@@ -4,6 +4,8 @@ import json
 from datetime import datetime, timedelta
 import vlc
 import random
+import pychromecast
+import zeroconf
 
 from PySide2.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QListWidget, QProgressBar, QFileDialog
 from workers.downloader import DownloadThread
@@ -32,21 +34,13 @@ class Form(QDialog):
 
         self.pbPlay.setEnabled( False )
         self.xProgressBar = QProgressBar( self )
-        self.eOutputFolder = QLineEdit( self )
-        self.pbBrowse = QPushButton( '...' )
-        self.pbBrowse.clicked.connect( self.onBrowseClick )
-
+    
         self.listFiles = QListWidget()
         self.listFiles.itemClicked.connect( self.onItemSelected )
 
         # Create layout and add widgets
         layout = QVBoxLayout()
 
-        layoutEdit = QHBoxLayout()
-        layoutEdit.addWidget(self.eOutputFolder)
-        layoutEdit.addWidget(self.pbBrowse)
-
-        layout.addLayout(layoutEdit)
         layout.addWidget(self.xProgressBar)
         layout.addWidget(self.listFiles )
         layout.addWidget(self.pbPlay)
@@ -64,18 +58,42 @@ class Form(QDialog):
             with open(DBFILE, "r") as f:
                 self.db = json.load( f )
                 
-                self.eOutputFolder.setText(self.db['output'])
                 for file in self.db['files']:
                     self.listFiles.addItem( file['filename'] )
         else:
             self.db = {
-                "output": "output",
                 "last_scan": "2020-01-28T19:19:10.702353",
                 "files": []
             }
     
         if datetime.now() >= datetime.fromisoformat(self.db['last_scan']) + timedelta( hours=12 ):
-            self.startWebScraping( DBFILE, ROOTURL )
+            self.startWebScraping( ROOTURL )
+
+        self.scanChromecast()
+
+    def scanChromecast( self ):
+        self.listener = pychromecast.CastListener(self.cc_added_callback, self.cc_removed_callback, self.cc_updated_callback)
+        zconf = zeroconf.Zeroconf()
+        self.browser = pychromecast.discovery.start_discovery(self.listener, zconf)
+
+    def cc_added_callback(self, uuid, name):
+        print("Found mDNS service for cast device {}".format(uuid))
+        self.list_devices()
+
+
+    def cc_removed_callback(self, uuid, name, service):
+        print("Lost mDNS service for cast device {} {}".format(uuid, service))
+        self.list_devices()
+
+
+    def cc_updated_callback(self, uuid, name):
+        print("Updated mDNS service for cast device {}".format(uuid))
+        self.list_devices()
+
+    def list_devices( self ):
+        print("Currently known cast devices:")
+        for uuid, service in self.listener.services.items():
+            print("  {} {}".format(uuid, service))
 
     def onPbStop( self ):
         self.player.stop()
@@ -103,10 +121,9 @@ class Form(QDialog):
         self.pbPlay.setEnabled( True )
         print( 'Selected: {}({})'.format( listItem.text(), self.listFiles.currentRow() ))
 
-    def startWebScraping( self, dbFile, rootUrl ):
-        self.pbBrowse.setEnabled( False )
-        print( "Starting web scraping from {} to {}...".format( rootUrl, dbFile ))
-        self.scrapethread = ScraperThread( dbFile, rootUrl )
+    def startWebScraping( self, rootUrl ):
+        print( "Starting web scraping from {}...".format( rootUrl ))
+        self.scrapethread = ScraperThread( rootUrl )
         self.scrapethread.scraper_update.connect( self.onScraperUpdate )
         self.scrapethread.scraper_complete.connect( self.onScraperComplete )
         self.scrapethread.start()
@@ -115,13 +132,18 @@ class Form(QDialog):
         pass
         
     def onScraperComplete( self, newdb ):
-        for obj in newdb:
-            if obj not in self.db:
-                self.db.append( obj )
+        for obj in newdb['files']:
+            if obj not in self.db['files']:
+                self.db['files'].append( obj )
                 self.listFiles.addItem( obj['filename'])
                 print( "Adding new mix: {}".format(obj['filename']))
 
-        self.pbBrowse.setEnabled( True )
+        self.db['last_scan'] = datetime.now().isoformat()
+
+        # Dump out the results 
+        with open( DBFILE, "w" ) as f:
+            self.db
+            json.dump( self.db, f, indent=4 )
 
     def onBrowseClick( self ):
         self.db['output'] = QFileDialog.getExistingDirectory()
