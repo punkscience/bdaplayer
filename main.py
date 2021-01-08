@@ -23,10 +23,16 @@ class Form(QDialog):
         super(Form, self).__init__(parent)
         self.setWindowTitle("Bassdrive Archive Player")
 
+        layoutPlay = QHBoxLayout()
         self.pbPlay = QPushButton( "Play")
+        self.pbCast = QPushButton( "Cast")
+        layoutPlay.addWidget( self.pbPlay )
+        layoutPlay.addWidget( self.pbCast )
+
         self.pbStop = QPushButton( "Stop")
         self.pbRandom = QPushButton( "Random" )
         self.pbDownload = QPushButton( "Download" )
+
         self.pbPlay.clicked.connect( self.onPbPlay )
         self.pbDownload.clicked.connect( self.onPbDownload )
         self.pbRandom.clicked.connect( self.onPbRandom )
@@ -39,11 +45,12 @@ class Form(QDialog):
         self.listFiles.itemClicked.connect( self.onItemSelected )
 
         # Create layout and add widgets
-        layout = QVBoxLayout()
+        layout = QVBoxLayout() 
 
         layout.addWidget(self.xProgressBar)
         layout.addWidget(self.listFiles )
-        layout.addWidget(self.pbPlay)
+
+        layout.addLayout(layoutPlay)
         layout.addWidget(self.pbStop )
         layout.addWidget(self.pbRandom )
         layout.addWidget(self.pbDownload)

@@ -1,6 +1,6 @@
 {
     "output": "/home/darryl/projects/bassdrivearchive/output",
-    "last_scan": "2021-01-03T22:06:16.474106",
+    "last_scan": "2021-01-07T22:33:58.333849",
     "files": [
         {
             "event": "Atmomatix Records Showcase - HiddenWave",
@@ -46182,6 +46182,126 @@
             "event": "The Warm Ears Show - Elementrix",
             "url": "http://archives.bassdrivearchive.com/7%20-%20Sunday/The%20Warm%20Ears%20Show%20-%20Elementrix/%5b2020.12.27%5d%20The%20Warm%20Ears%20Show%20-%20Elementrix.mp3",
             "filename": "[2020.12.27] The Warm Ears Show - Elementrix.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "DrumObsession - Alegria",
+            "url": "http://archives.bassdrivearchive.com/2%20-%20Tuesday/DrumObsession%20-%20Alegria/%5b2020.12.29%5d%20DrumObsession%20-%20Alegria.mp3",
+            "filename": "[2020.12.29] DrumObsession - Alegria.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Sohl Patrol - Sohlman",
+            "url": "http://archives.bassdrivearchive.com/2%20-%20Tuesday/Sohl%20Patrol%20-%20Sohlman/%5b2020.12.29%5d%20Sohl%20Patrol%20-%20Sohlman.mp3",
+            "filename": "[2020.12.29] Sohl Patrol - Sohlman.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Sweetpea Live on Bassdrive - Sweetpea",
+            "url": "http://archives.bassdrivearchive.com/2%20-%20Tuesday/Sweetpea%20Live%20on%20Bassdrive%20-%20Sweetpea/%5b2020.12.29%5d%20Sweetpea%20Live%20on%20Bassdrive%20-%20Sweetpea.mp3",
+            "filename": "[2020.12.29] Sweetpea Live on Bassdrive - Sweetpea.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "The River City Rinse Out - iLL Omen",
+            "url": "http://archives.bassdrivearchive.com/2%20-%20Tuesday/The%20River%20City%20Rinse%20Out%20-%20iLL%20Omen/%5b2020.12.29%5d%20The%20River%20City%20Rinseout%20-%20iLL%20Omen.mp3",
+            "filename": "[2020.12.29] The River City Rinseout - iLL Omen.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "XPOSURE Records Show - Ben XO",
+            "url": "http://archives.bassdrivearchive.com/2%20-%20Tuesday/XPOSURE%20Records%20Show%20-%20Ben%20XO/%5b2020.12.29%5d%20XPOSURE%20Records%20Show%20-%20Ben%20XO.mp3",
+            "filename": "[2020.12.29] XPOSURE Records Show - Ben XO.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Northern Groove Show - Dan Soulsmith",
+            "url": "http://archives.bassdrivearchive.com/3%20-%20Wednesday/Northern%20Groove%20Show%20-%20Dan%20Soulsmith/%5b2020.12.30%5d%20Northern%20Groove%20Show%20-%20Dan%20Soulsmith.mp3",
+            "filename": "[2020.12.30] Northern Groove Show - Dan Soulsmith.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Power Rinse - EvanTheScientist",
+            "url": "http://archives.bassdrivearchive.com/3%20-%20Wednesday/Power%20Rinse%20-%20EvanTheScientist/%5b2020.12.30%5d%20Power%20Rinse%20-%20EvanTheScientist.mp3",
+            "filename": "[2020.12.30] Power Rinse - EvanTheScientist.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Promo ZO - Promozo",
+            "url": "http://archives.bassdrivearchive.com/3%20-%20Wednesday/Promo%20ZO%20-%20Promozo/%5b2020.12.30%5d%20Promo%20ZO%20-%20Promozo.mp3",
+            "filename": "[2020.12.30] Promo ZO - Promozo.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Random Movement Radio - Random Movement",
+            "url": "http://archives.bassdrivearchive.com/3%20-%20Wednesday/Random%20Movement%20Radio%20-%20Random%20Movement/%5b2020.12.30%5d%20Random%20Movement%20Radio%20-%20Random%20Movement.mp3",
+            "filename": "[2020.12.30] Random Movement Radio - Random Movement.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "The Greenroom - Stunna",
+            "url": "http://archives.bassdrivearchive.com/3%20-%20Wednesday/The%20Greenroom%20-%20Stunna/%5b2020.12.30%5d%20The%20Greenroom%20-%20Stunna.mp3",
+            "filename": "[2020.12.30] The Greenroom - Stunna.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Impressions - Indentation",
+            "url": "http://archives.bassdrivearchive.com/4%20-%20Thursday/Impressions%20-%20Indentation/%5b2020.12.31%5d%20Impressions%20-%20Indentation.mp3",
+            "filename": "[2020.12.31] Impressions - Indentation.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Just On Track - Ashatack",
+            "url": "http://archives.bassdrivearchive.com/4%20-%20Thursday/Just%20On%20Track%20-%20Ashatack/%5b2020.12.31%5d%20Just%20On%20Track%20-%20Ashatack.mp3",
+            "filename": "[2020.12.31] Just On Track - Ashatack.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "The Ebb Flow Show - OPTX",
+            "url": "http://archives.bassdrivearchive.com/4%20-%20Thursday/The%20Ebb%20Flow%20Show%20-%20OPTX/%5b2020.12.31%5d%20The%20Ebb%20flow%20Show%20-%20OPTX.mp3",
+            "filename": "[2020.12.31] The Ebb flow Show - OPTX.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Trainspotting Sessions - DJ Amnesty",
+            "url": "http://archives.bassdrivearchive.com/4%20-%20Thursday/Trainspotting%20Sessions%20-%20DJ%20Amnesty/%5b2020.12.31%5d%20Trainspotting%20Sessions%20-%20Amnesty.mp3",
+            "filename": "[2020.12.31] Trainspotting Sessions - Amnesty.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Deep Soul Show - Donovan Badboy Smith",
+            "url": "http://archives.bassdrivearchive.com/5%20-%20Friday/Deep%20Soul%20Show%20-%20Donovan%20Badboy%20Smith/%5b2021.01.01%5d%20Deep%20Soul%20Show%20-%20Donovan%20Badboy%20Smith.mp3",
+            "filename": "[2021.01.01] Deep Soul Show - Donovan Badboy Smith.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Eclips3 Music - Liquid",
+            "url": "http://archives.bassdrivearchive.com/5%20-%20Friday/Eclips3%20Music%20-%20Liquid/%5b2021.01.01%5d%20Eclips3%20Music%20-%20Liquid.mp3",
+            "filename": "[2021.01.01] Eclips3 Music - Liquid.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Location SixOneOh - Reflect",
+            "url": "http://archives.bassdrivearchive.com/5%20-%20Friday/Location%20SixOneOh%20-%20Reflect/%5b2021.01.01%5d%20Location%20SixOneOh%20-%20Reflect.mp3",
+            "filename": "[2021.01.01] Location SixOneOh - Reflect.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Represent Radio - Squake",
+            "url": "http://archives.bassdrivearchive.com/5%20-%20Friday/Represent%20Radio%20-%20Squake/%5b2021.01.01%5d%20Represent%20Radio%20-%20Squake.mp3",
+            "filename": "[2021.01.01] Represent Radio - Squake.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Vibration Sessions - Vibration Records",
+            "url": "http://archives.bassdrivearchive.com/5%20-%20Friday/Vibration%20Sessions%20-%20Vibration%20Records/%5b2020.12.31%5d%20Vibration%20Sessions%20-%20Rodney%20Rolls.mp3",
+            "filename": "[2020.12.31] Vibration Sessions - Rodney Rolls.mp3",
+            "downloaded": false
+        },
+        {
+            "event": "Vibration Sessions - Vibration Records",
+            "url": "http://archives.bassdrivearchive.com/5%20-%20Friday/Vibration%20Sessions%20-%20Vibration%20Records/%5b2021.01.01%5d%20Vibration%20Sessions%20-%20AudioDevice.mp3",
+            "filename": "[2021.01.01] Vibration Sessions - AudioDevice.mp3",
             "downloaded": false
         }
     ]
